@@ -1,0 +1,31 @@
+{
+  "Records": [
+    {
+      "eventID": "ecc2b187d9d9a8c24f1a714ec9becdf5",
+      "eventName": "INSERT",
+      "eventVersion": "1.1",
+      "eventSource": "aws:dynamodb",
+      "awsRegion": "us-east-1",
+      "dynamodb": {
+        "ApproximateCreationDateTime": 1512972120,
+        "Keys": {
+          "id": {
+            "S": "00000000-0000-0000-0000-000000000000"
+          }
+        },
+        "NewImage": {
+          "id": {
+            "S": "00000000-0000-0000-0000-000000000000"
+          },
+          "status": {
+            "S": "submitted"
+          }
+        },
+        "SequenceNumber": "4679700000000042732214622",
+        "SizeBytes": 91,
+        "StreamViewType": "NEW_AND_OLD_IMAGES"
+      },
+      "eventSourceARN": "arn:aws:dynamodb:us-east-1:870671212434:table/dev-cndp-order-service-orders/stream/2017-12-10T05:53:48.108"
+    }
+  ]
+}

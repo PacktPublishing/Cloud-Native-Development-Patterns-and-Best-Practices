@@ -1,0 +1,16 @@
+POST /
+content-type: application/x-amz-json-1.0
+x-amz-target: DynamoDB_20120810.GetItem
+host: dynamodb.us-east-1.amazonaws.com
+body: {\"TableName\":\"dev-cndp-order-service-orders\",\"Key\":{\"id\":{\"S\":\"00000000-0000-0000-0000-000000000000\"}}}
+
+HTTP/1.1 200 OK
+server: Server
+date: Mon, 11 Dec 2017 05:27:37 GMT
+content-type: application/x-amz-json-1.0
+content-length: 87
+connection: keep-alive
+x-amzn-requestid: S60AODUUC8E9852FAINCNQSV2JVV4KQNSO5AEMVJF66Q9ASUAAJG
+x-amz-crc32: 4155184743
+
+{"Item":{"id":{"S":"00000000-0000-0000-0000-000000000000"},"status":{"S":"submitted"}}}

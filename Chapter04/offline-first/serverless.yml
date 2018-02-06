@@ -1,0 +1,137 @@
+service: cndp-offline-first
+
+provider:
+  name: aws
+  runtime: nodejs6.10
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - kinesis:PutRecord
+        - kinesis:PutRecords
+      Resource:
+        Fn::GetAtt:
+          - Stream
+          - Arn
+    - Effect: Allow
+      Action:
+        - cognito-sync:*
+      Resource: "*"
+
+functions:
+  trigger:
+    handler: handler.trigger
+    events:
+      - stream:
+          type: kinesis
+          arn:
+            Fn::GetAtt:
+              - Stream
+              - Arn
+          batchSize: 100
+          startingPosition: TRIM_HORIZON
+    environment:
+      STREAM_NAME:
+        Ref: Stream
+  consumer:
+    handler: handler.consumer
+    events:
+      - stream:
+          type: kinesis
+          arn:
+            Fn::GetAtt:
+              - Stream
+              - Arn
+          batchSize: 100
+          startingPosition: TRIM_HORIZON
+    environment:
+      IDENTITY_POOL_ID:
+        Ref: IdentityPool
+
+package:
+  exclude:
+    - node_modules/**
+    - '!node_modules/highland/**'
+    - '!node_modules/util-deprecate/**'
+    - '!node_modules/uuid/**'
+
+resources:
+  Resources:
+    Stream:
+      Type: AWS::Kinesis::Stream
+      Properties:
+        Name: ${opt:stage}-${self:service}-stream
+        RetentionPeriodHours: 24
+        ShardCount: 1
+    IdentityPool:
+      Type: AWS::Cognito::IdentityPool
+      Properties:
+        IdentityPoolName: offlineFirstIdentityPool
+        AllowUnauthenticatedIdentities: true
+        CognitoStreams:
+          StreamName:
+            Ref: Stream
+          StreamingStatus: ENABLED
+          RoleArn:
+            Fn::GetAtt:
+              - CognitoPublishRole
+              - Arn
+    IdentityPoolRoleMapping:
+      Type: AWS::Cognito::IdentityPoolRoleAttachment
+      Properties:
+        IdentityPoolId:
+          Ref: IdentityPool
+        Roles:
+          unauthenticated: 
+            Fn::GetAtt:
+              - CognitoUnAuthorizedRole
+              - Arn
+    CognitoUnAuthorizedRole:
+      Type: AWS::IAM::Role
+      Properties:
+        AssumeRolePolicyDocument: 
+          Statement:
+            - Effect: Allow
+              Principal: 
+                Federated: cognito-identity.amazonaws.com
+              Action: 
+                - sts:AssumeRoleWithWebIdentity
+              Condition:
+                StringEquals: 
+                  cognito-identity.amazonaws.com:aud:
+                    Ref: IdentityPool
+                ForAnyValue:StringLike:
+                  cognito-identity.amazonaws.com:amr: unauthenticated
+        Policies:
+          - PolicyName: CognitoUnauthorizedPolicy
+            PolicyDocument: 
+              Statement: 
+                - Effect: Allow
+                  Action:
+                    - cognito-sync:*
+                  Resource: "*"
+    CognitoPublishRole:
+      Type: AWS::IAM::Role
+      Properties:
+        AssumeRolePolicyDocument: 
+          Statement:
+            - Effect: Allow
+              Principal: 
+                Service: cognito-sync.amazonaws.com
+              Action: 
+                - sts:AssumeRole
+        Policies:
+          - PolicyName: CognitoPublishPolicy
+            PolicyDocument: 
+              Statement: 
+                - Effect: Allow
+                  Action:
+                    - kinesis:PutRecord
+                  Resource:
+                    Fn::GetAtt:
+                      - Stream
+                      - Arn
+
+  Outputs:
+    identityPool:
+      Value: 
+        Ref: IdentityPool

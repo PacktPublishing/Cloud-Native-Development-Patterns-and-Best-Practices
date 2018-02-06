@@ -1,0 +1,22 @@
+service: cndp-event-service
+
+provider:
+  name: aws
+
+resources:
+  Resources:
+    Stream:
+      Type: AWS::Kinesis::Stream
+      Properties:
+        Name: cndp-event-stream
+        RetentionPeriodHours: 24
+        ShardCount: 1
+  Outputs:
+    streamName:
+      Value: 
+        Ref: Stream
+    streamArn:
+      Value: 
+        Fn::GetAtt:
+          - Stream
+          - Arn

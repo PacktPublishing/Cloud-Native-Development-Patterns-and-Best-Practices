@@ -1,0 +1,134 @@
+service: cndp-data-lake
+
+provider:
+  name: aws
+  runtime: nodejs6.10
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - kinesis:PutRecord
+      Resource:
+        Fn::GetAtt:
+          - Stream
+          - Arn
+
+functions:
+  producer:
+    handler: handler.publish
+    environment:
+      STREAM_NAME:
+        Ref: Stream
+
+package:
+  exclude:
+    - node_modules/**
+    - '!node_modules/uuid/**'
+
+resources:
+  Resources:
+    Bucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${opt:stage}-${opt:region}-${self:service}-datalake
+    DeliveryStream:
+      Type: AWS::KinesisFirehose::DeliveryStream
+      Properties:
+        DeliveryStreamType: KinesisStreamAsSource      
+        KinesisStreamSourceConfiguration: 
+          KinesisStreamARN:
+            Fn::GetAtt:
+              - Stream
+              - Arn
+          RoleARN:
+            Fn::GetAtt:
+              - KinesisRole
+              - Arn
+        ExtendedS3DestinationConfiguration:
+          BucketARN:
+            Fn::GetAtt:
+              - Bucket
+              - Arn
+          Prefix: ${opt:stage}-${self:service}-stream/
+          BufferingHints:
+            IntervalInSeconds: 60
+            SizeInMBs: 50
+          CompressionFormat: UNCOMPRESSED
+          RoleARN:
+            Fn::GetAtt:
+              - DeliveryRole
+              - Arn
+          CloudWatchLoggingOptions: 
+            Enabled: true
+            LogGroupName:
+              Ref: LogGroup
+            LogStreamName:
+              Ref: LogStream
+    LogGroup: 
+      Type: AWS::Logs::LogGroup
+    LogStream: 
+      Type: AWS::Logs::LogStream
+      Properties: 
+        LogGroupName:
+          Ref: LogGroup
+        LogStreamName: datalake
+    KinesisRole:
+      Type: AWS::IAM::Role
+      Properties:
+        AssumeRolePolicyDocument:
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service: firehose.amazonaws.com
+              Action: 'sts:AssumeRole'
+        Policies:               
+          - PolicyName: consume
+            PolicyDocument:
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - kinesis:GetRecords
+                    - kinesis:GetShardIterator
+                    - kinesis:DescribeStream
+                    - kinesis:ListStreams
+                  Resource:
+                    Fn::GetAtt:
+                      - Stream
+                      - Arn
+    DeliveryRole:
+      Type: AWS::IAM::Role
+      Properties:
+        AssumeRolePolicyDocument:
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service: firehose.amazonaws.com
+              Action: 'sts:AssumeRole'
+        Policies:               
+          - PolicyName: delivery
+            PolicyDocument:
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - s3:AbortMultipartUpload
+                    - s3:GetBucketLocation
+                    - s3:GetObject
+                    - s3:ListBucket
+                    - s3:ListBucketMultipartUploads
+                    - s3:PutObject
+                  Resource:
+                    - Fn::GetAtt:
+                        - Bucket
+                        - Arn
+                    - Fn::Join:
+                        - '/'
+                        - - Fn::GetAtt:
+                              - Bucket
+                              - Arn
+                          - '*'
+
+    Stream:
+      Type: AWS::Kinesis::Stream
+      Properties:
+        Name: ${opt:stage}-${self:service}-stream
+        RetentionPeriodHours: 24
+        ShardCount: 1

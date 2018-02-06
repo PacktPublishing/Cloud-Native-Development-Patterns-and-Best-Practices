@@ -1,0 +1,34 @@
+{
+  "name": "my-component",
+  "scripts": {
+    "test": "mocha ./test/unit/**/**/*.test.js",
+    "test:int": "npm start -- --exec \"mocha --timeout 10000 ./test/int/**/*.test.js\"",
+    "start": "sls offline start -r us-east-1 -s dev --acct dev",
+    "dp:lcl": "sls deploy -v -r us-east-1 --acct dev",
+    "rm:lcl": "sls remove -v -r us-east-1 --acct dev",
+    "dp:stg:e": "sls deploy -v -r us-east-1 -s stg --acct dev",
+    "rm:stg:e": "sls remove -v -r us-east-1 -s stg --acct dev",
+    "dp:prd:e": "sls deploy -v -r us-east-1 -s prd --acct prd",
+    "rm:prd:e": "sls remove -v -r us-east-1 -s prd --acct prd"
+  },
+  "dependencies": {
+    "bluebird": "latest",
+    "debug": "latest",
+    "highland": "latest",
+    "lodash": "latest",
+    "moment": "latest",
+    "uuid": "latest"
+  },
+  "devDependencies": {
+    "aws-sdk": "latest",
+    "aws-sdk-mock": "latest",
+    "chai": "latest",
+    "mocha": "latest",
+    "serverless": "latest",
+    "serverless-offline": "latest",
+    "serverless-webpack": "latest",
+    "sinon": "latest",
+    "supertest": "latest",
+    "webpack": "latest"
+  }
+}

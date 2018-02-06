@@ -1,0 +1,146 @@
+service: cndp-api-gateway
+
+provider:
+  name: aws
+  runtime: nodejs6.10
+  # apiKeys:
+  #   - ${opt:stage}-${self:service}-apikey
+  # usagePlan:
+  #   quota:
+  #     limit: 5000
+  #     offset: 2
+  #     period: MONTH
+  #   throttle:
+  #     burstLimit: 200
+  #     rateLimit: 100
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+      Resource:
+        - Fn::GetAtt:
+            - Table
+            - Arn
+
+functions:
+  save:
+    handler: handler.save
+    events:
+      - http:
+          path: items/{id}
+          method: put
+          cors: true
+          # private: true
+          # authorizer:
+          #   arn: ${self:custom.authorizer}
+          #   resultTtlInSeconds: 300
+    environment:
+      TABLE_NAME: ${self:custom.tableName}
+  get:
+    handler: handler.get
+    events:
+      - http:
+          path: items/{id}
+          method: get
+          cors: true
+          # private: true
+          # authorizer:
+          #   arn: ${self:custom.authorizer}
+    environment:
+      TABLE_NAME: ${self:custom.tableName}
+  delete:
+    handler: handler.delete
+    events:
+      - http:
+          path: items/{id}
+          method: delete
+          cors: true
+          # private: true
+          # authorizer:
+          #   arn: ${self:custom.authorizer}
+    environment:
+      TABLE_NAME: ${self:custom.tableName}
+
+plugins:
+  - serverless-offline
+
+package:
+  exclude:
+    - node_modules/**
+    - '!node_modules/uuid/**'
+
+custom:
+  tableName: ${opt:stage}-${self:service}-items  
+  authorizer: arn:aws:cognito-idp:us-east-1:xxx:userpool/us-east-1_ZZZ
+
+resources:
+  Resources:
+    Table:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:custom.tableName}
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+  #   CloudFrontDistribution:
+  #     Type: AWS::CloudFront::Distribution
+  #     Properties:
+  #       DistributionConfig:
+  #         Enabled: true
+  #         Comment: ${opt:stage}-${self:service} (${opt:region})
+  #         # Aliases:
+  #         #   - api.example.com
+  #         Origins:
+  #           - Id: apiGateway
+  #             DomainName:
+  #               Fn::Join:
+  #                 - "."
+  #                 - - Ref: ApiGatewayRestApi
+  #                   - execute-api.${opt:region}.amazonaws.com
+  #             OriginPath: "/${opt:stage}"
+  #             CustomOriginConfig:
+  #               HTTPPort: 80
+  #               HTTPSPort: 443
+  #               OriginProtocolPolicy: match-viewer
+  #         DefaultCacheBehavior:
+  #           TargetOriginId: apiGateway
+  #           AllowedMethods:
+  #             - DELETE
+  #             - GET
+  #             - HEAD
+  #             - OPTIONS
+  #             - PATCH
+  #             - POST
+  #             - PUT
+  #           ForwardedValues:
+  #             QueryString: true
+  #             Cookies:
+  #               Forward: none
+  #             Headers:
+  #               - Accept
+  #               - Authorization
+  #               - X-Api-Key
+  #           ViewerProtocolPolicy: https-only
+  #           CachedMethods:
+  #             - HEAD
+  #             - GET
+  #             - OPTIONS
+  #         # WebACLId:
+
+  # Outputs:
+  #   CloudFrontDistribution:
+  #     Value:
+  #       Ref: CloudFrontDistribution
+  #   CloudFrontDistributionDomainName:
+  #     Value:
+  #       Fn::GetAtt:
+  #         - CloudFrontDistribution
+  #         - DomainName
+          

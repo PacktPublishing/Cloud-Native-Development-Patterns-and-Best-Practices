@@ -1,0 +1,15 @@
+PUT /orders/00000000-0000-0000-0000-000000000000/submit
+accept-encoding: gzip, deflate
+content-type: application/json
+body: {\"id\":\"00000000-0000-0000-0000-000000000000\"}
+
+HTTP/1.1 200 OK
+content-type: application/json
+access-control-allow-origin: *
+access-control-allow-credentials: true
+cache-control: no-cache
+content-length: 0
+vary: accept-encoding
+date: Sun, 10 Dec 2017 06:07:44 GMT
+connection: close
+

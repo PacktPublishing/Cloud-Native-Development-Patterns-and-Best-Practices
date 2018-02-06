@@ -1,0 +1,15 @@
+POST /
+content-type: application/x-amz-json-1.1
+x-amz-target: Kinesis_20131202.PutRecords
+host: kinesis.us-east-1.amazonaws.com
+body: {\"StreamName\":\"cndp-event-stream\",\"Records\":[{\"PartitionKey\":\"00000000-0000-0000-0000-000000000000\",\"Data\":\"eyJpZCI6IjAwMDAwMDAwLTAwMDAtMDAwMC0wMDAwLTAwMDAwMDAwMDAwMiIsInR5cGUiOiJvcmRlci1yZWNlaXZlZCIsInRpbWVzdGFtcCI6MTUxMjk3NTY5OTIxOCwicGFydGl0aW9uS2V5IjoiMDAwMDAwMDAtMDAwMC0wMDAwLTAwMDAtMDAwMDAwMDAwMDAwIiwiY29udGV4dCI6eyJvcmRlciI6eyJpZCI6IjAwMDAwMDAwLTAwMDAtMDAwMC0wMDAwLTAwMDAwMDAwMDAwMCIsInN0YXR1cyI6InN1Ym1pdHRlZCJ9LCJ0cmlnZ2VyIjoiOTBmZGRiMzAtZDI3Mi0xMWU3LThhNzQtNmQ1ZWNjMTQyZTVmIn19\"}]}
+
+HTTP/1.1 200 OK
+server: Apache-Coyote/1.1
+x-amzn-requestid: e090cc97-366d-6673-b238-e304be4e8313
+x-amz-id-2: acj70KG2MDC+LWYqZ5m+mOwOKlpozjdCt3zjWzDiMCExd5hBOggUfdB/tCUW1giXbm1wSDjil7stJUhopLXpR9GXyvptH20o
+content-type: application/x-amz-json-1.1
+content-length: 146
+date: Mon, 11 Dec 2017 07:01:39 GMT
+
+{"FailedRecordCount":0,"Records":[{"SequenceNumber":"49579701905957178334304759163584525013075414489772326914","ShardId":"shardId-000000000000"}]}

@@ -1,0 +1,124 @@
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<div id="root"></div>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.4.2/react.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.4.2/react-dom.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.26.0/babel.min.js"></script>
+<script src="https://sdk.amazonaws.com/js/aws-sdk-2.1.12.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/amazon-cognito-identity-js@1.29.0/dist/aws-cognito-sdk.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/amazon-cognito-identity-js@1.29.0/dist/amazon-cognito-identity.min.js"></script>
+
+<script type="text/babel">
+AWSCognito.config.region = 'us-east-1';
+     
+const poolData = {
+    UserPoolId : 'us-east-1_QQXlm8Jkh', // your user pool id here
+    ClientId : '2b4eqpcq0cj6tb9g6gv42ovbuq' // your app client id here
+};
+const userPool = new AWSCognito.CognitoIdentityServiceProvider.CognitoUserPool(poolData);
+
+class App extends React.Component {
+    constructor(props) {
+        super(props)
+        this.state = {
+            username: '',
+            tempPassword: '',
+            newPassword: '',
+        };
+    }
+
+    handleUsernameChange(e) {
+        this.setState({username: e.target.value});
+    }
+
+    handleTempPasswordChange(e) {
+        this.setState({tempPassword: e.target.value});
+    }
+
+    handleNewPasswordChange(e) {
+        this.setState({newPassword: e.target.value});
+    }
+    
+    submit(e) {
+        e.preventDefault();
+
+        console.log('s: ', this.state);
+
+        try {
+
+            // console.log('p: ', userPool);
+
+            const userData = {
+                Username: this.state.username,
+                Pool : userPool
+            };
+            const cognitoUser = new AWSCognito.CognitoIdentityServiceProvider.CognitoUser(userData);
+
+            // console.log('u: ', cognitoUser);
+            
+            const authenticationData = {
+                Username : this.state.username,
+                Password : this.state.tempPassword,
+            };
+            const authenticationDetails = new AWSCognito.CognitoIdentityServiceProvider.AuthenticationDetails(authenticationData);
+    
+            // console.log('a: ', authenticationDetails);
+            
+            cognitoUser.authenticateUser(authenticationDetails, {
+                onSuccess: (result) => {
+                    console.log('result: ', result);
+                },
+    
+                onFailure: (err) => {
+                    console.error(err);
+                },
+
+                newPasswordRequired: (userAttributes, requiredAttributes) => {
+                    cognitoUser.completeNewPasswordChallenge(this.state.newPassword, { name: this.state.username }, {
+                        onSuccess: (result) => {
+                            console.log('result: ', result);
+                        },
+            
+                        onFailure: (err) => {
+                            console.error(err);
+                        },
+                    })
+                }            
+            });     
+        } catch (e) {
+            console.error(e);   
+        }   
+    }
+    
+    render() {
+        return (
+            <div>
+                <form>
+                    <label>Username: </label>
+                    <input type="text"
+                        value={this.state.username}
+                        onChange={this.handleUsernameChange.bind(this)}/>
+                    
+                    <label>Temp Password: </label>
+                    <input type="text"
+                        value={this.state.tempPassword}
+                        onChange={this.handleTempPasswordChange.bind(this)}/>
+
+                    <label>New Password: </label>
+                    <input type="text"
+                        value={this.state.newPassword}
+                        onChange={this.handleNewPasswordChange.bind(this)}/>
+                    
+                    <button onClick={this.submit.bind(this)}>Submit</button>
+                </form>
+            </div>
+        );
+    }
+}
+
+ReactDOM.render(
+    <App />,
+    document.getElementById('root')
+);
+</script>

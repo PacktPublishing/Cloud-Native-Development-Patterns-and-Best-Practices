@@ -1,0 +1,98 @@
+service: cndp-external-service-gateway
+
+provider:
+  name: aws
+  runtime: nodejs6.10
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - kinesis:PutRecord
+      Resource:
+        Fn::GetAtt:
+          - Stream
+          - Arn
+    - Effect: Allow
+      Action:
+        - cognito-idp:AdminCreateUser
+        - cognito-idp:AdminConfirmSignUp
+      Resource: "*"
+
+functions:
+  trigger:
+    handler: handler.trigger
+    events:
+      - cognitoUserPool:
+          pool: EsgUserPool
+          trigger: PostConfirmation
+      - cognitoUserPool:
+          pool: EsgUserPool
+          trigger: PostAuthentication
+    environment:
+      STREAM_NAME:
+        Ref: Stream
+  consumer:
+    handler: handler.consumer
+    events:
+      - stream:
+          type: kinesis
+          arn:
+            Fn::GetAtt:
+              - Stream
+              - Arn
+          batchSize: 100
+          startingPosition: TRIM_HORIZON
+    environment:
+      USER_POOL_ID:
+        Ref: CognitoUserPoolEsgUserPool
+  producer:
+    handler: handler.publish
+    environment:
+      STREAM_NAME:
+        Ref: Stream
+
+package:
+  exclude:
+    - node_modules/**
+    - '!node_modules/highland/**'
+    - '!node_modules/util-deprecate/**'
+    - '!node_modules/uuid/**'
+
+resources:
+  Resources:
+    CognitoUserPoolEsgUserPool:
+      Type: AWS::Cognito::UserPool
+      Properties:
+        UserPoolName: esgUserPool
+        AdminCreateUserConfig:
+          AllowAdminCreateUserOnly: true
+        Schema:
+          - AttributeDataType: 'String'
+            DeveloperOnlyAttribute: false
+            Mutable: true
+            Name: 'email'
+            Required: true
+        AliasAttributes:
+          - email
+        AutoVerifiedAttributes:
+          - email
+    CognitoUserPoolEsgUserPoolClient:
+      Type: AWS::Cognito::UserPoolClient
+      Properties:
+        UserPoolId:
+          Ref: CognitoUserPoolEsgUserPool
+
+    Stream:
+      Type: AWS::Kinesis::Stream
+      Properties:
+        Name: ${opt:stage}-${self:service}-stream
+        RetentionPeriodHours: 24
+        ShardCount: 1
+
+  Outputs:
+    userPool:
+      Value: 
+        Ref: CognitoUserPoolEsgUserPool
+    userPoolClient:
+      Value: 
+        Ref: CognitoUserPoolEsgUserPoolClient
+

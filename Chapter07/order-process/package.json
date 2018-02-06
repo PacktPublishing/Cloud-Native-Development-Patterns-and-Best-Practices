@@ -1,0 +1,86 @@
+{
+  "name": "cndp-order-process",
+  "scripts": {
+    "pretest": "tslint --config ./tslint.json --fix ./src/**/*.ts ./test/**/*.test.ts",
+    "pretest:int": "tslint --config ./tslint.json --fix ./test/int/**/*.test.ts",
+    "test": "nyc mocha ./test/unit/**/**/*.test.ts",
+    "test:int": "mocha --timeout 10000 --compilers ts:ts-node/register ./test/int/**/*.test.ts",
+    "dp:lcl": "sls deploy -v -r us-east-1 --acct dev",
+    "rm:lcl": "sls remove -v -r us-east-1 --acct dev",
+    "dp:dev:e": "sls deploy -v -r us-east-1 -s dev --acct dev",
+    "rm:dev:e": "sls remove -v -r us-east-1 -s dev --acct dev"
+  },
+  "author": "John Gilbert <john.gilbert@danteinc.com> (danteinc.com)",
+  "license": "ISC",
+  "dependencies": {
+    "bluebird": "latest",
+    "bluebird-global": "latest",
+    "debug": "latest",
+    "highland": "latest",
+    "lodash": "latest",
+    "moment": "latest",
+    "uuid": "latest"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "latest",
+    "@types/bluebird": "latest",
+    "@types/bluebird-global": "latest",
+    "@types/chai": "latest",
+    "@types/highland": "latest",
+    "@types/lodash": "latest",
+    "@types/mocha": "latest",
+    "@types/node": "latest",
+    "@types/sinon": "latest",
+    "@types/sinon-chai": "latest",
+    "@types/supertest": "latest",
+    "@types/uuid": "latest",
+    "aws-sdk": "latest",
+    "aws-sdk-mock": "latest",
+    "baton-event-relay": "latest",
+    "baton-vcr-replay-for-aws-sdk": "latest",
+    "chai": "latest",
+    "mocha": "latest",
+    "nyc": "latest",
+    "replay": "latest",
+    "serverless": "latest",
+    "serverless-offline": "latest",
+    "serverless-webpack": "latest",
+    "sinon": "latest",
+    "sinon-chai": "latest",
+    "supertest": "latest",
+    "ts-loader": "latest",
+    "ts-node": "latest",
+    "tslint": "latest",
+    "tslint-config-airbnb": "latest",
+    "tslint-loader": "latest",
+    "typescript": "latest",
+    "webpack": "latest"
+  },
+  "nyc": {
+    "lines": 100,
+    "statements": 100,
+    "functions": 100,
+    "branches": 100,
+    "include": [
+      "src/**/**/*.ts"
+    ],
+    "exclude": [
+      "test/int/**/**/*.test.ts",
+      "test/unit/**/**/*.test.ts"
+    ],
+    "extension": [
+      ".ts"
+    ],
+    "require": [
+      "ts-node/register"
+    ],
+    "reporter": [
+      "json",
+      "html",
+      "text-summary"
+    ],
+    "cache": false,
+    "check-coverage": true,
+    "all": true
+  }
+}

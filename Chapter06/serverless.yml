@@ -1,0 +1,25 @@
+service: cndp-my-component
+
+provider:
+  name: aws
+  runtime: nodejs6.10
+
+plugins:
+  - serverless-offline
+  - serverless-webpack
+
+custom: # account specific variables
+  dev:
+    v1: 123
+  prd:
+    v1: 789
+
+functions:
+  get:
+    handler: handler.get
+    events:
+      - http:
+          path: items/{id}
+          method: get
+    environment:
+      V1: ${self:custom.${opt:acct}.v1} 

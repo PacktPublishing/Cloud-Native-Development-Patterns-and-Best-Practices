@@ -1,0 +1,39 @@
+{
+  "name": "cndp-order-fe",
+  "version": "1.0.0",
+  "author": "John Gilbert <john.gilbert@danteinc.com> (danteinc.com)",
+  "license": "ISC",
+  "scripts": {
+    "test": "echo Success: there are no unit tests",
+    "pretest:int": "tslint --config ./tslint.json --fix ./test/int/**/*.test.ts",
+    "test:int": "mocha --timeout 5000 --compilers ts:ts-node/register ./test/int/**/*.test.ts"
+  },
+  "devDependencies": {
+    "@types/bluebird": "^3.5.4",
+    "@types/chai": "^3.5.2",
+    "@types/lodash": "^4.14.68",
+    "@types/mocha": "^2.2.41",
+    "@types/node": "^7.0.22",
+    "@types/sinon": "^2.3.3",
+    "@types/supertest": "^2.0.2",
+    "@types/uuid": "^3.0.0",
+    "chai": "^3.5.0",
+    "mocha": "^3.4.2",
+    "replay": "^2.1.2",
+    "sinon": "^2.3.8",
+    "supertest": "^3.0.0",
+    "ts-loader": "^2.2.2",
+    "ts-node": "^3.2.0",
+    "tslint": "^5.3.2",
+    "tslint-config-airbnb": "^5.1.2",
+    "tslint-loader": "^3.5.2",
+    "typescript": "^2.4.1"
+  },
+  "dependencies": {
+    "bluebird": "^3.5.0",
+    "debug": "^2.6.8",
+    "lodash": "^4.17.4",
+    "moment": "^2.16.0",
+    "uuid": "^3.1.0"
+  }
+}

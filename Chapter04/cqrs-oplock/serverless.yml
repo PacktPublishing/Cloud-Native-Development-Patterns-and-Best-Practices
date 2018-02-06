@@ -1,0 +1,73 @@
+service: cndp-cqrs-oplock
+
+provider:
+  name: aws
+  runtime: nodejs6.10
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:PutItem
+      Resource:
+        - Fn::GetAtt:
+            - View
+            - Arn
+    - Effect: Allow
+      Action:
+        - kinesis:PutRecord
+        - kinesis:PutRecords
+      Resource:
+        Fn::GetAtt:
+          - Stream
+          - Arn
+
+functions:
+  command:
+    handler: handler.command
+    environment:
+      STREAM_NAME:
+        Ref: Stream
+  consumer:
+    handler: handler.consumer
+    events:
+      - stream:
+          type: kinesis
+          arn:
+            Fn::GetAtt:
+              - Stream
+              - Arn
+    environment:
+      VIEW_TABLE_NAME:
+        Ref: View
+
+package:
+  exclude:
+    - node_modules/**
+    - '!node_modules/highland/**'
+    - '!node_modules/util-deprecate/**'
+    - '!node_modules/uuid/**'
+
+resources:
+  Resources:
+    Stream:
+      Type: AWS::Kinesis::Stream
+      Properties:
+        Name: ${opt:stage}-${self:service}-stream
+        RetentionPeriodHours: 24
+        ShardCount: 1
+    View:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${opt:stage}-${self:service}-view
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+
+          
+

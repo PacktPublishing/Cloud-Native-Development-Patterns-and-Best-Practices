@@ -1,0 +1,111 @@
+<div id="root"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.4.2/react.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.4.2/react-dom.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.26.0/babel.min.js"></script>
+<script src="https://sdk.amazonaws.com/js/aws-sdk-2.1.12.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/amazon-cognito-js@1.1.0/dist/amazon-cognito.min.js"></script>
+
+<script type="text/babel">
+class App extends React.Component {
+    constructor(props) {
+        super(props)
+        this.state = {};
+    }
+
+    componentWillMount() {
+        AWS.config.region = 'us-east-1';
+        AWS.config.credentials = new AWS.CognitoIdentityCredentials({
+            IdentityPoolId: 'us-east-1:37b46b84-b896-4973-ac7a-159d78b119ab',
+        });
+        
+        AWS.config.credentials.get(() => {
+            const syncClient = new AWS.CognitoSyncManager();
+            syncClient.openOrCreateDataset('counter', (err, dataset) => {
+                if (!err) {
+                    dataset.get('count', (err, value) => {
+                        if (!err) {
+                            // console.log('get: ', value);
+                            this.setState({
+                                count: value ? Number(value) : 0
+                            });
+                        } else {
+                            console.error(err);
+                            this.setState({
+                                count: 0
+                            });
+                        }
+                    });
+                    dataset.get('squared', (err, value) => {
+                        if (!err) {
+                            // console.log('get: ', value);
+                            this.setState({
+                                squared: value ? Number(value) : 0
+                            });
+                        } else {
+                            console.error(err);
+                            this.setState({
+                                squared: 0
+                            });
+                        }
+                    });
+                    this.dataset = dataset;
+                } else {
+                    console.error(err);
+                }
+            });
+        });
+    }
+
+    increment(e) {
+        const val = this.state.count + 1;
+
+        this.dataset.put('count', String(val), (err, record) => {
+            if (!err) {
+                console.log('put: ', record);
+                this.setState({
+                    count: val
+                });
+            } else {
+                console.error(err);
+            }
+        });
+    }
+
+    synchronize(e) {
+	    this.dataset.synchronize({
+	        onSuccess: (data, newRecords) => {
+                this.dataset.get('squared', (err, value) => {
+                    if (!err) {
+                        console.log('synced: ', value);
+                        this.setState({
+                            squared: value
+                        });
+                    } else {
+                        console.error(err);
+                    }
+                });
+            },
+            onFailure: (err) => {
+                console.error(err);
+            }
+	    });
+    }
+    
+    render() {
+        return (
+            <div>
+                <h1>Counter: {this.state.count}</h1>
+                <h1>Squared: {this.state.squared}</h1>
+                <button onClick={this.increment.bind(this)}>Increment</button>
+                <button onClick={this.synchronize.bind(this)}>Synchronize</button>
+            </div>
+        );
+    }
+}
+
+ReactDOM.render(
+    <App />,
+    document.getElementById('root')
+);
+</script>

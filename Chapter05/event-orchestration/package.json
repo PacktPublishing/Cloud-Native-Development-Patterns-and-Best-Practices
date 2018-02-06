@@ -1,0 +1,22 @@
+{
+  "name": "cndp-bpm",
+  "version": "1.0.0",
+  "description": "",
+  "main": "handler.js",
+  "scripts": {
+    "test": "mocha handler.test.js",
+    "dp:dev:e": "sls deploy -v -r us-east-1 -s dev",
+    "rm:dev:e": "sls remove -v -r us-east-1 -s dev"
+  },
+  "author": "John Gilbert <john.gilbert@danteinc.com> (danteinc.com)",
+  "license": "ISC",
+  "dependencies": {
+    "highland": "^2.11.1",
+    "uuid": "^3.1.0"
+  },
+  "devDependencies": {
+    "aws-sdk": "^2.149.0",
+    "mocha": "^4.0.1",
+    "serverless": "^1.23.0"
+  }
+}

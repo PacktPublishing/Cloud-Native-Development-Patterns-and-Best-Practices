@@ -1,0 +1,71 @@
+service: cndp-cloud-native-db
+
+provider:
+  name: aws
+  runtime: nodejs6.10
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:PutItem
+      Resource:
+        Fn::GetAtt:
+          - Table
+          - Arn
+    - Effect: Allow
+      Action:
+        - s3:PutObject
+      Resource:
+        Fn::Join:
+          - ''
+          - - Fn::GetAtt:
+                - Bucket
+                - Arn
+            - '*'
+
+functions:
+  command:
+    handler: handler.command
+    environment:
+      TABLE_NAME:
+        Ref: Table
+  trigger:
+    handler: handler.trigger
+    events:
+      - stream:
+          type: dynamodb
+          arn:
+            Fn::GetAtt:
+              - Table
+              - StreamArn
+    environment:
+      BUCKET_NAME:
+        Ref: Bucket
+
+package:
+  exclude:
+    - node_modules/**
+    - '!node_modules/highland/**'
+    - '!node_modules/util-deprecate/**'
+    - '!node_modules/uuid/**'
+
+resources:
+  Resources:
+    Bucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${opt:stage}-${opt:region}-${self:service}-b1
+    Table:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${opt:stage}-${self:service}-t1
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+        StreamSpecification:
+          StreamViewType: NEW_AND_OLD_IMAGES

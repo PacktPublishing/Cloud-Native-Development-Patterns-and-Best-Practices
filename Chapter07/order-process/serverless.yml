@@ -1,0 +1,39 @@
+service: cndp-order-process
+
+provider:
+  name: aws
+  runtime: nodejs6.10
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - kinesis:PutRecords
+      Resource: ${self:custom.streamArn}
+  environment:
+    ACCOUNT_NAME: ${opt:acct}
+    SERVERLESS_PROJECT: ${self:service}
+    SERVERLESS_STAGE: ${opt:stage}
+    SERVERLESS_REGION: ${opt:region}
+    DEBUG: ${env:DEBUG, self:custom.debug}
+
+plugins:
+  - serverless-webpack
+
+functions:
+  listener:
+    handler: src/listener.handle
+    events:
+      - stream:
+          type: kinesis
+          arn: ${self:custom.streamArn}
+          batchSize: 100
+          startingPosition: TRIM_HORIZON
+    environment:
+      STREAM_NAME: ${self:custom.streamName}
+
+custom:
+  debug: '*'
+  streamName: ${cf:cndp-event-service-${opt:stage}.streamName}
+  streamArn: ${cf:cndp-event-service-${opt:stage}.streamArn}
+
+resources:
+  Resources:

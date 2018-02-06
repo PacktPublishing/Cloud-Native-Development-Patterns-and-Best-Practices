@@ -1,0 +1,39 @@
+image: node:6
+
+before_script:
+  - npm install
+
+stages:
+  - test
+  - deploy
+
+test:
+  stage: test
+  variables:
+    AWS_ACCESS_KEY_ID: $DEV_AWS_ACCESS_KEY_ID
+    AWS_SECRET_ACCESS_KEY: $DEV_AWS_SECRET_ACCESS_KEY
+  script:
+    - npm test
+    - npm run test:int
+
+staging-east:
+  stage: deploy
+  variables:
+    AWS_ACCESS_KEY_ID: $STG_AWS_ACCESS_KEY_ID
+    AWS_SECRET_ACCESS_KEY: $STG_AWS_SECRET_ACCESS_KEY
+  script:
+    - npm run dp:stg:e
+  only:
+    - tags
+  except:
+    - master
+
+production-east:
+  stage: deploy
+  variables:
+    AWS_ACCESS_KEY_ID: $PROD_AWS_ACCESS_KEY_ID
+    AWS_SECRET_ACCESS_KEY: $PROD_AWS_SECRET_ACCESS_KEY
+  script:
+    - npm run dp:prd:e
+  only:
+    - master
